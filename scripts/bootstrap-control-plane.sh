@@ -1,43 +1,28 @@
 #!/usr/bin/env bash
-# Bootstrap script for K3s control plane on NixOS
-# Run this after NixOS installation and network configuration
+# K3s control plane post-setup script
+#
+# Run this AFTER you've deployed the K3s server via your NixOS config:
+#   nixos-rebuild switch --flake /path/to/nixos-config#control-plane
+#
+# This script:
+# - Verifies K3s is running
+# - Extracts the join token for worker nodes
+# - Displays next steps
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_DIR="$(dirname "$SCRIPT_DIR")"
-
-echo "=== K3s Control Plane Bootstrap ==="
+echo "=== K3s Control Plane Post-Setup ==="
 
 # Check if running on NixOS
 if [ ! -f /etc/NIXOS ]; then
-    echo "Error: This script must be run on NixOS"
-    exit 1
+    echo "Warning: Not running on NixOS (continuing anyway)"
 fi
 
-# Check if running as root or with sudo
-if [ "$EUID" -ne 0 ]; then
-    echo "Error: This script must be run as root or with sudo"
-    exit 1
-fi
-
-# Step 1: Apply NixOS configuration
+# Step 1: Wait for K3s to be ready
 echo ""
-echo "Step 1: Applying NixOS configuration..."
-cd "$REPO_DIR/infrastructure/nixos"
+echo "Step 1: Checking K3s status..."
 
-# Rebuild NixOS with the flake
-nixos-rebuild switch --flake .#control-plane
-
-echo "NixOS configuration applied successfully."
-
-# Step 2: Wait for K3s to start
-echo ""
-echo "Step 2: Waiting for K3s to start..."
-sleep 10
-
-# Wait for K3s to be ready
-timeout=120
+timeout=60
 while [ $timeout -gt 0 ]; do
     if kubectl get nodes &>/dev/null; then
         break
@@ -48,40 +33,53 @@ while [ $timeout -gt 0 ]; do
 done
 
 if [ $timeout -le 0 ]; then
-    echo "Error: Timeout waiting for K3s to start"
+    echo "Error: K3s is not running or not accessible"
+    echo ""
+    echo "Ensure you've deployed your NixOS config with the k3s-server module:"
+    echo "  nixos-rebuild switch --flake /path/to/your-nixos-config#control-plane"
     exit 1
 fi
 
 echo "K3s is running!"
-
-# Step 3: Display cluster info
-echo ""
-echo "Step 3: Cluster information"
 kubectl get nodes
 
-# Step 4: Save join token location
+# Step 2: Extract join token
 echo ""
-echo "Step 4: K3s join token"
+echo "Step 2: K3s join token"
 TOKEN_FILE="/var/lib/rancher/k3s/server/node-token"
+
 if [ -f "$TOKEN_FILE" ]; then
-    echo "Join token is stored at: $TOKEN_FILE"
-    echo "Use this token when joining worker nodes."
+    SERVER_URL="https://$(hostname):6443"
+    TOKEN=$(cat "$TOKEN_FILE")
+
     echo ""
-    echo "To join a worker node, you'll need:"
-    echo "  Server URL: https://$(hostname):6443"
-    echo "  Token: $(cat $TOKEN_FILE)"
+    echo "Worker nodes need these values:"
+    echo "  Server URL: $SERVER_URL"
+    echo "  Token file: $TOKEN_FILE"
+    echo ""
+    echo "Token value (for manual setup):"
+    echo "  $TOKEN"
+    echo ""
+    echo "In your worker's NixOS config, add:"
+    echo "  services.k3s.serverAddr = \"$SERVER_URL\";"
+    echo "  services.k3s.tokenFile = /path/to/token;  # Copy token to this file"
 else
-    echo "Warning: Token file not found at $TOKEN_FILE"
+    echo "Error: Token file not found at $TOKEN_FILE"
+    echo "K3s may not have started correctly."
+    exit 1
 fi
 
-# Step 5: Next steps
+# Step 3: Next steps
 echo ""
-echo "=== Bootstrap Complete ==="
+echo "=== Next Steps ==="
 echo ""
-echo "Next steps:"
-echo "1. Note the join token above for worker nodes"
-echo "2. Flash Raspberry Pi OS on your Pis"
-echo "3. Run the Ansible playbook to join workers:"
-echo "   cd $REPO_DIR/infrastructure/ansible"
-echo "   ansible-playbook -i inventory.yaml site.yaml"
+echo "For NixOS worker nodes (x86):"
+echo "  1. Copy the token to the worker machine"
+echo "  2. Import k3s-agent module from this repo in your NixOS config"
+echo "  3. Set services.k3s.serverAddr and services.k3s.tokenFile"
+echo "  4. Run: nixos-rebuild switch --flake .#worker-hostname"
+echo ""
+echo "For Raspberry Pi workers:"
+echo "  1. Update infrastructure/ansible/group_vars/all.yaml with the token"
+echo "  2. Run: ./scripts/join-worker.sh"
 echo ""

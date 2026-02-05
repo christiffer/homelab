@@ -20,3 +20,37 @@ tasks:
       - "2025-02-05: Created directory structure"
       - "2025-02-05: Wrote task schema and backlog"
       - "2025-02-05: Added README and placeholder files"
+
+  - id: hw-001
+    title: Install NixOS on x86 server
+    description: |
+      Download NixOS ISO, create bootable USB, and install NixOS on the x86 server.
+      Use minimal installation, as configuration will be managed via flake.
+      Ensure SSH access is enabled during installation for remote management.
+    type: hardware
+    assignee: human
+    status: done
+    priority: critical
+    labels: [nixos, x86, os-install, phase-1-control-plane]
+    created: "2025-02-05"
+    updated: "2025-02-05"
+    notes:
+      - "2025-02-05: NixOS already installed and managed via separate NixOS config repo"
+
+  - id: hw-002
+    title: Configure network for x86 server
+    description: |
+      Assign static IP address to x86 server.
+      Configure hostname (e.g., 'control-plane' or similar).
+      Ensure server is accessible on local network.
+      Document IP address and hostname in inventory.
+    type: hardware
+    assignee: human
+    status: done
+    priority: critical
+    depends_on: [hw-001]
+    labels: [x86, networking, phase-1-control-plane]
+    created: "2025-02-05"
+    updated: "2025-02-05"
+    notes:
+      - "2025-02-05: Network configuration managed via separate NixOS config repo"
