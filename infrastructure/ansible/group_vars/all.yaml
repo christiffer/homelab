@@ -1,0 +1,27 @@
+# Global variables for all hosts
+
+---
+# System configuration
+timezone: "UTC"  # TODO: Set to your timezone
+
+# SSH configuration
+ssh_allow_password: false
+
+# Common packages to install on all Pis
+common_packages:
+  - vim
+  - git
+  - curl
+  - htop
+  - iotop
+  - tmux
+  - jq
+
+# K3s configuration
+k3s_version: "v1.29.0+k3s1"  # Pin version for consistency
+k3s_server_url: "https://control-plane:6443"
+# k3s_token: "{{ lookup('file', '/path/to/token') }}"  # Set via vault or file
+
+# Node exporter for monitoring
+node_exporter_version: "1.7.0"
+node_exporter_port: 9100

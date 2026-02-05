@@ -1,0 +1,76 @@
+# Support services role - for Pis not in K3s cluster
+
+---
+# PiHole installation
+- name: Install PiHole
+  block:
+    - name: Download PiHole install script
+      get_url:
+        url: https://install.pi-hole.net
+        dest: /tmp/pihole-install.sh
+        mode: '0755'
+
+    - name: Check if PiHole is installed
+      stat:
+        path: /usr/local/bin/pihole
+      register: pihole_binary
+
+    - name: Note about PiHole installation
+      debug:
+        msg: |
+          PiHole requires interactive installation. Run:
+          curl -sSL https://install.pi-hole.net | bash
+      when: not pihole_binary.stat.exists
+  when: pihole_enabled | default(false)
+
+# Node Exporter for monitoring
+- name: Install Node Exporter
+  block:
+    - name: Create node_exporter user
+      user:
+        name: node_exporter
+        shell: /bin/false
+        system: true
+        create_home: false
+
+    - name: Download Node Exporter
+      get_url:
+        url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-armv7.tar.gz"
+        dest: /tmp/node_exporter.tar.gz
+
+    - name: Extract Node Exporter
+      unarchive:
+        src: /tmp/node_exporter.tar.gz
+        dest: /tmp
+        remote_src: true
+
+    - name: Install Node Exporter binary
+      copy:
+        src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-armv7/node_exporter"
+        dest: /usr/local/bin/node_exporter
+        mode: '0755'
+        remote_src: true
+
+    - name: Create Node Exporter systemd service
+      copy:
+        dest: /etc/systemd/system/node_exporter.service
+        content: |
+          [Unit]
+          Description=Node Exporter
+          After=network.target
+
+          [Service]
+          User=node_exporter
+          ExecStart=/usr/local/bin/node_exporter --web.listen-address=:{{ node_exporter_port }}
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Enable and start Node Exporter
+      systemd:
+        name: node_exporter
+        enabled: true
+        state: started
+        daemon_reload: true
+  when: node_exporter_enabled | default(false)

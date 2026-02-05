@@ -1,0 +1,25 @@
+# Root Application - App of Apps pattern
+# This Application watches the argocd-apps directory and creates child Applications
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/YOUR_USERNAME/home_assistant.git  # TODO: Update
+    targetRevision: HEAD
+    path: kubernetes/argocd-apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

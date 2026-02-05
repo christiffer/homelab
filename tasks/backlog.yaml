@@ -1,0 +1,376 @@
+# Task Backlog
+# Tasks pending work, organized by phase
+
+tasks:
+  # =============================================================================
+  # Phase 1: Control Plane
+  # =============================================================================
+
+  # Hardware Tasks (Human)
+  - id: hw-001
+    title: Install NixOS on x86 server
+    description: |
+      Download NixOS ISO, create bootable USB, and install NixOS on the x86 server.
+      Use minimal installation, as configuration will be managed via flake.
+      Ensure SSH access is enabled during installation for remote management.
+    type: hardware
+    assignee: human
+    status: backlog
+    priority: critical
+    labels: [nixos, x86, os-install, phase-1-control-plane]
+    created: "2025-02-05"
+    notes: []
+
+  - id: hw-002
+    title: Configure network for x86 server
+    description: |
+      Assign static IP address to x86 server.
+      Configure hostname (e.g., 'control-plane' or similar).
+      Ensure server is accessible on local network.
+      Document IP address and hostname in inventory.
+    type: hardware
+    assignee: human
+    status: backlog
+    priority: critical
+    depends_on: [hw-001]
+    labels: [x86, networking, phase-1-control-plane]
+    created: "2025-02-05"
+    notes: []
+
+  # Software Tasks (Claude)
+  - id: sw-001
+    title: Create NixOS flake with K3s server configuration
+    description: |
+      Write a NixOS flake that configures:
+      - K3s server (control plane)
+      - Basic system configuration (users, SSH, timezone)
+      - Firewall rules for K3s
+      - Any required kernel modules
+      Reference: infrastructure/nixos/flake.nix
+    type: software
+    assignee: claude
+    status: backlog
+    priority: high
+    depends_on: [hw-002]
+    labels: [nixos, k3s, configuration, phase-1-control-plane]
+    created: "2025-02-05"
+    notes: []
+
+  - id: sw-002
+    title: Create control plane bootstrap script
+    description: |
+      Write a bootstrap script that:
+      - Clones the repo to the control plane
+      - Applies the NixOS configuration
+      - Extracts and stores the K3s join token
+      Reference: scripts/bootstrap-control-plane.sh
+    type: software
+    assignee: claude
+    status: backlog
+    priority: high
+    depends_on: [sw-001]
+    labels: [nixos, k3s, phase-1-control-plane]
+    created: "2025-02-05"
+    notes: []
+
+  # =============================================================================
+  # Phase 2: Worker Nodes
+  # =============================================================================
+
+  # Hardware Tasks (Human)
+  - id: hw-003
+    title: Flash Raspberry Pi OS on Pi 5
+    description: |
+      Use Raspberry Pi Imager to flash Pi OS (64-bit) on Pi 5.
+      Configure SSH access during imaging.
+      Set hostname during imaging (e.g., 'pi5-worker').
+      Note: Enable cgroups for K3s compatibility.
+    type: hardware
+    assignee: human
+    status: backlog
+    priority: high
+    labels: [pi, os-install, phase-2-workers]
+    created: "2025-02-05"
+    notes: []
+
+  - id: hw-004
+    title: Flash Raspberry Pi OS on Pi 4 units
+    description: |
+      Flash Pi OS (64-bit) on both Pi 4 units.
+      Configure SSH and hostnames (e.g., 'pi4-worker-1', 'pi4-worker-2').
+      Enable cgroups for K3s compatibility.
+    type: hardware
+    assignee: human
+    status: backlog
+    priority: high
+    labels: [pi, os-install, phase-2-workers]
+    created: "2025-02-05"
+    notes: []
+
+  - id: hw-005
+    title: Physical setup of Raspberry Pis
+    description: |
+      Mount Pis in cases/rack.
+      Connect power supplies.
+      Connect to network (ethernet preferred for workers).
+      Verify all units boot and are accessible via SSH.
+    type: hardware
+    assignee: human
+    status: backlog
+    priority: high
+    depends_on: [hw-003, hw-004]
+    labels: [pi, networking, phase-2-workers]
+    created: "2025-02-05"
+    notes: []
+
+  # Software Tasks (Claude)
+  - id: sw-003
+    title: Create Ansible inventory for Raspberry Pis
+    description: |
+      Write Ansible inventory defining:
+      - K3s worker nodes (Pi 5, Pi 4s)
+      - Support service nodes (Pi 1/2/3)
+      - Group variables for each category
+      Reference: infrastructure/ansible/inventory.yaml
+    type: software
+    assignee: claude
+    status: backlog
+    priority: high
+    labels: [ansible, pi, configuration, phase-2-workers]
+    created: "2025-02-05"
+    notes: []
+
+  - id: sw-004
+    title: Write Ansible common role
+    description: |
+      Create common role that applies to all Pis:
+      - System updates
+      - Essential packages
+      - SSH hardening
+      - Time sync (NTP)
+      - User management
+      Reference: infrastructure/ansible/roles/common/
+    type: software
+    assignee: claude
+    status: backlog
+    priority: high
+    labels: [ansible, configuration, phase-2-workers]
+    created: "2025-02-05"
+    notes: []
+
+  - id: sw-005
+    title: Write Ansible K3s agent role
+    description: |
+      Create K3s agent role that:
+      - Installs K3s in agent mode
+      - Configures to join existing cluster
+      - Handles ARM-specific settings
+      - Manages K3s service
+      Reference: infrastructure/ansible/roles/k3s-agent/
+    type: software
+    assignee: claude
+    status: backlog
+    priority: high
+    depends_on: [sw-004]
+    labels: [ansible, k3s, phase-2-workers]
+    created: "2025-02-05"
+    notes: []
+
+  - id: sw-006
+    title: Create worker join script
+    description: |
+      Write a script that runs Ansible to:
+      - Apply common role
+      - Apply K3s agent role
+      - Join worker to cluster
+      Reference: scripts/join-worker.sh
+    type: software
+    assignee: claude
+    status: backlog
+    priority: high
+    depends_on: [sw-005]
+    labels: [ansible, k3s, phase-2-workers]
+    created: "2025-02-05"
+    notes: []
+
+  # =============================================================================
+  # Phase 3: GitOps Bootstrap
+  # =============================================================================
+
+  - id: sw-007
+    title: Create ArgoCD deployment manifests
+    description: |
+      Write Kubernetes manifests for ArgoCD:
+      - Namespace
+      - ArgoCD installation (Helm or raw manifests)
+      - Initial configuration
+      - Ingress for UI access
+      Reference: kubernetes/infrastructure/argocd/
+    type: software
+    assignee: claude
+    status: backlog
+    priority: high
+    depends_on: [sw-002, sw-006]
+    labels: [argocd, kubernetes, phase-3-gitops]
+    created: "2025-02-05"
+    notes: []
+
+  - id: sw-008
+    title: Configure ArgoCD app-of-apps
+    description: |
+      Set up the app-of-apps pattern:
+      - Root Application pointing to argocd-apps/
+      - Application CRDs for each component
+      - Sync policies and health checks
+      Reference: kubernetes/argocd-apps/
+    type: software
+    assignee: claude
+    status: backlog
+    priority: high
+    depends_on: [sw-007]
+    labels: [argocd, kubernetes, phase-3-gitops]
+    created: "2025-02-05"
+    notes: []
+
+  # =============================================================================
+  # Phase 4: Core Services
+  # =============================================================================
+
+  - id: sw-009
+    title: Create ingress-nginx deployment
+    description: |
+      Write manifests for ingress-nginx controller.
+      Configure for bare-metal deployment.
+      Set up default TLS certificate handling.
+      Reference: kubernetes/infrastructure/ingress-nginx/
+    type: software
+    assignee: claude
+    status: backlog
+    priority: medium
+    depends_on: [sw-008]
+    labels: [kubernetes, phase-4-core-services]
+    created: "2025-02-05"
+    notes: []
+
+  - id: sw-010
+    title: Create cert-manager deployment
+    description: |
+      Write manifests for cert-manager.
+      Configure Let's Encrypt ClusterIssuer.
+      Set up DNS or HTTP challenge.
+      Reference: kubernetes/infrastructure/cert-manager/
+    type: software
+    assignee: claude
+    status: backlog
+    priority: medium
+    depends_on: [sw-008]
+    labels: [kubernetes, phase-4-core-services]
+    created: "2025-02-05"
+    notes: []
+
+  - id: sw-011
+    title: Create Longhorn deployment
+    description: |
+      Write manifests for Longhorn distributed storage.
+      Configure storage classes.
+      Set up backup targets (if applicable).
+      Reference: kubernetes/infrastructure/longhorn/
+    type: software
+    assignee: claude
+    status: backlog
+    priority: medium
+    depends_on: [sw-008]
+    labels: [kubernetes, phase-4-core-services]
+    created: "2025-02-05"
+    notes: []
+
+  - id: sw-012
+    title: Create monitoring stack deployment
+    description: |
+      Write manifests for Prometheus + Grafana.
+      Configure service monitors for K3s components.
+      Set up basic dashboards.
+      Reference: kubernetes/infrastructure/monitoring/
+    type: software
+    assignee: claude
+    status: backlog
+    priority: medium
+    depends_on: [sw-008]
+    labels: [kubernetes, phase-4-core-services]
+    created: "2025-02-05"
+    notes: []
+
+  # =============================================================================
+  # Phase 5: Applications
+  # =============================================================================
+
+  - id: sw-013
+    title: Create Vikunja deployment
+    description: |
+      Write manifests for Vikunja task manager.
+      Configure persistent storage.
+      Set up ingress with TLS.
+      Plan migration from YAML tasks.
+      Reference: kubernetes/apps/vikunja/
+    type: software
+    assignee: claude
+    status: backlog
+    priority: medium
+    depends_on: [sw-009, sw-010, sw-011]
+    labels: [kubernetes, phase-5-apps]
+    created: "2025-02-05"
+    notes: []
+
+  - id: sw-014
+    title: Create Home Assistant deployment
+    description: |
+      Write manifests for Home Assistant.
+      Configure persistent storage.
+      Consider USB device passthrough requirements.
+      Set up ingress with TLS.
+      Reference: kubernetes/apps/home-assistant/
+    type: software
+    assignee: claude
+    status: backlog
+    priority: medium
+    depends_on: [sw-009, sw-010, sw-011]
+    labels: [kubernetes, phase-5-apps]
+    created: "2025-02-05"
+    notes: []
+
+  # =============================================================================
+  # Support Services (Non-cluster Pis)
+  # =============================================================================
+
+  - id: hw-006
+    title: Set up older Pis for support services
+    description: |
+      Flash Pi OS on Pi 1/2/3 units.
+      These will run support services outside the cluster:
+      - PiHole DNS
+      - Monitoring exporters
+      - Backup agents
+    type: hardware
+    assignee: human
+    status: backlog
+    priority: low
+    labels: [pi, os-install]
+    created: "2025-02-05"
+    notes: []
+
+  - id: sw-015
+    title: Write Ansible support services role
+    description: |
+      Create role for non-cluster Pis:
+      - PiHole installation and configuration
+      - Node exporter for monitoring
+      - Backup agent setup
+      Reference: infrastructure/ansible/roles/support-services/
+    type: software
+    assignee: claude
+    status: backlog
+    priority: low
+    depends_on: [hw-006]
+    labels: [ansible, phase-5-apps]
+    created: "2025-02-05"
+    notes: []

@@ -1,0 +1,21 @@
+# Main Ansible playbook
+# Usage: ansible-playbook -i inventory.yaml site.yaml
+
+---
+- name: Configure all Raspberry Pis
+  hosts: raspberry_pis
+  become: true
+  roles:
+    - common
+
+- name: Configure K3s worker nodes
+  hosts: k3s_workers
+  become: true
+  roles:
+    - k3s-agent
+
+- name: Configure support services
+  hosts: support_services
+  become: true
+  roles:
+    - support-services

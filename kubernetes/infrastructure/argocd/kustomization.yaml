@@ -1,0 +1,14 @@
+# ArgoCD deployment
+# This will be populated when Phase 3 begins
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: argocd
+
+resources:
+  # ArgoCD will be installed here
+  # Options:
+  # 1. Use upstream manifests: https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  # 2. Use Helm chart via helmCharts
+  []
