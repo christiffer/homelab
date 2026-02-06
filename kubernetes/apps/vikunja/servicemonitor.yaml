@@ -1,0 +1,18 @@
+# Vikunja ServiceMonitor
+# Enables Prometheus to scrape metrics from Vikunja
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: vikunja
+  namespace: vikunja
+  labels:
+    app: vikunja
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: vikunja
+  endpoints:
+    - port: http
+      path: /api/v1/metrics
+      interval: 30s

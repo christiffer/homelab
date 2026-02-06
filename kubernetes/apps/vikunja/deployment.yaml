@@ -29,6 +29,8 @@ spec:
               containerPort: 3456
               protocol: TCP
           env:
+            - name: VIKUNJA_METRICS_ENABLED
+              value: "true"
             - name: VIKUNJA_SERVICE_PUBLICURL
               value: "http://vikunja.local"
             - name: VIKUNJA_DATABASE_TYPE
