@@ -13,7 +13,17 @@ K3s + ArgoCD home lab with hybrid config management: NixOS (x86 server), Ansible
 
 ## Task tracking
 
-Tasks are tracked in **Vikunja** at `http://192.168.1.41` (Homelab project). Task IDs use `prefix-nnn` format (hw-001, sw-001). Tasks have types (software/hardware) and assignees (claude/human) noted in descriptions.
+Tasks are tracked in **Vikunja** at `http://192.168.1.41` (Homelab project). Use the `.vikunja/vk` CLI:
+
+```bash
+.vikunja/vk list              # Show open tasks
+.vikunja/vk show <id>         # View task details
+.vikunja/vk create "title" --priority=P2 --desc="..."
+.vikunja/vk done <id>         # Mark complete
+.vikunja/vk update <id> --title="..." --priority=P1
+```
+
+Task IDs use `prefix-nnn` format (hw-001, sw-001). Priorities: P0 (urgent) → P4 (low).
 
 ## Key conventions
 
@@ -28,7 +38,7 @@ Tasks are tracked in **Vikunja** at `http://192.168.1.41` (Homelab project). Tas
 - **NixOS changes**: Edit modules in `infrastructure/nixos/modules/`, test with `nix flake check`
 - **Ansible changes**: Edit roles/playbooks in `infrastructure/ansible/`, test with `--check` mode
 - **K8s manifests**: Add to appropriate dir under `kubernetes/`, ArgoCD syncs from git
-- **Task updates**: Update tasks in Vikunja (http://192.168.1.41, Homelab project)
+- **Task updates**: Use `.vikunja/vk` CLI to manage tasks
 
 ## Do not
 

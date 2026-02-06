@@ -1,0 +1,257 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Vikunja CLI wrapper for nix-config
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$SCRIPT_DIR/config"
+TOKEN_FILE="$SCRIPT_DIR/token"
+
+# Load config
+if [[ -f "$CONFIG_FILE" ]]; then
+  source "$CONFIG_FILE"
+else
+  echo "Error: Config file not found at $CONFIG_FILE" >&2
+  exit 1
+fi
+
+# Load token
+if [[ -f "$TOKEN_FILE" ]]; then
+  VIKUNJA_TOKEN="$(cat "$TOKEN_FILE")"
+else
+  echo "Error: Token file not found at $TOKEN_FILE" >&2
+  echo "Create it with your API token: echo 'your-token' > $TOKEN_FILE" >&2
+  exit 1
+fi
+
+API="$VIKUNJA_HOST/api/v1"
+PROJECT_ID="$VIKUNJA_PROJECT_ID"
+
+# Helper: make API request
+api() {
+  local method="$1"
+  local endpoint="$2"
+  shift 2
+  curl -s --connect-timeout 10 -X "$method" \
+    -H "Authorization: Bearer $VIKUNJA_TOKEN" \
+    -H "Content-Type: application/json" \
+    "$@" \
+    "$API$endpoint"
+}
+
+# Helper: format task for display
+format_task() {
+  local json="$1"
+  echo "$json" | jq -r '
+    def priority_label:
+      if . == 0 then "  "
+      elif . == 1 then "P4"
+      elif . == 2 then "P3"
+      elif . == 3 then "P2"
+      elif . == 4 then "P1"
+      elif . == 5 then "P0"
+      else "  "
+      end;
+    def status_icon:
+      if .done then "✓"
+      else " "
+      end;
+    "[" + status_icon + "] #\(.id) [\(.priority | priority_label)] \(.title)"
+  '
+}
+
+# Commands
+cmd_list() {
+  local filter="done = false"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --all) filter="" ;;
+      --done) filter="done = true" ;;
+      *) echo "Unknown option: $1" >&2; exit 1 ;;
+    esac
+    shift
+  done
+
+  local endpoint="/projects/$PROJECT_ID/tasks"
+  [[ -n "$filter" ]] && endpoint="$endpoint?filter=$(printf '%s' "$filter" | jq -sRr @uri)"
+
+  api GET "$endpoint" | jq -r '
+    def priority_label:
+      if . == 0 then "  "
+      elif . == 1 then "P4"
+      elif . == 2 then "P3"
+      elif . == 3 then "P2"
+      elif . == 4 then "P1"
+      elif . == 5 then "P0"
+      else "  "
+      end;
+    def status_icon:
+      if .done then "✓"
+      else " "
+      end;
+    .[] | "[" + status_icon + "] #\(.id) [\(.priority | priority_label)] \(.title)"
+  '
+}
+
+cmd_show() {
+  local task_id="$1"
+  api GET "/tasks/$task_id" | jq -r '
+    def priority_label:
+      if . == 0 then "none"
+      elif . == 1 then "P4 (low)"
+      elif . == 2 then "P3"
+      elif . == 3 then "P2 (medium)"
+      elif . == 4 then "P1"
+      elif . == 5 then "P0 (urgent)"
+      else "unknown"
+      end;
+    "Task #\(.id): \(.title)",
+    "Status: \(if .done then "Done" else "Open" end)",
+    "Priority: \(.priority | priority_label)",
+    (if .description != "" then "Description: \(.description)" else empty end),
+    (if .due_date and .due_date != "0001-01-01T00:00:00Z" then "Due: \(.due_date)" else empty end),
+    "Created: \(.created)",
+    "Updated: \(.updated)"
+  '
+}
+
+cmd_create() {
+  local title=""
+  local description=""
+  local priority=0
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --title=*) title="${1#*=}" ;;
+      --title) title="$2"; shift ;;
+      --desc=*|--description=*) description="${1#*=}" ;;
+      --desc|--description) description="$2"; shift ;;
+      --priority=*) priority="${1#*=}" ;;
+      --priority) priority="$2"; shift ;;
+      *)
+        # Treat positional arg as title if not set
+        if [[ -z "$title" ]]; then
+          title="$1"
+        else
+          echo "Unknown option: $1" >&2
+          exit 1
+        fi
+        ;;
+    esac
+    shift
+  done
+
+  if [[ -z "$title" ]]; then
+    echo "Usage: vk create --title=\"Task title\" [--desc=\"description\"] [--priority=0-5]" >&2
+    exit 1
+  fi
+
+  # Convert P0-P4 notation to Vikunja priority (inverted: P0=5, P4=1)
+  case "$priority" in
+    P0|p0) priority=5 ;;
+    P1|p1) priority=4 ;;
+    P2|p2) priority=3 ;;
+    P3|p3) priority=2 ;;
+    P4|p4) priority=1 ;;
+  esac
+
+  local payload
+  payload=$(jq -n \
+    --arg title "$title" \
+    --arg desc "$description" \
+    --argjson priority "$priority" \
+    '{title: $title, description: $desc, priority: $priority}')
+
+  local result
+  result=$(api PUT "/projects/$PROJECT_ID/tasks" -d "$payload")
+  local task_id
+  task_id=$(echo "$result" | jq -r '.id')
+  echo "Created task #$task_id: $title"
+}
+
+cmd_done() {
+  local task_id="$1"
+  api POST "/tasks/$task_id" -d '{"done": true}' | jq -r '"Marked task #\(.id) as done: \(.title)"'
+}
+
+cmd_reopen() {
+  local task_id="$1"
+  api POST "/tasks/$task_id" -d '{"done": false}' | jq -r '"Reopened task #\(.id): \(.title)"'
+}
+
+cmd_update() {
+  local task_id="$1"
+  shift
+
+  local payload="{}"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --title=*) payload=$(echo "$payload" | jq --arg v "${1#*=}" '. + {title: $v}') ;;
+      --title) payload=$(echo "$payload" | jq --arg v "$2" '. + {title: $v}'); shift ;;
+      --desc=*|--description=*) payload=$(echo "$payload" | jq --arg v "${1#*=}" '. + {description: $v}') ;;
+      --desc|--description) payload=$(echo "$payload" | jq --arg v "$2" '. + {description: $v}'); shift ;;
+      --priority=*)
+        local p="${1#*=}"
+        case "$p" in P0|p0) p=5 ;; P1|p1) p=4 ;; P2|p2) p=3 ;; P3|p3) p=2 ;; P4|p4) p=1 ;; esac
+        payload=$(echo "$payload" | jq --argjson v "$p" '. + {priority: $v}')
+        ;;
+      --priority)
+        local p="$2"
+        case "$p" in P0|p0) p=5 ;; P1|p1) p=4 ;; P2|p2) p=3 ;; P3|p3) p=2 ;; P4|p4) p=1 ;; esac
+        payload=$(echo "$payload" | jq --argjson v "$p" '. + {priority: $v}')
+        shift
+        ;;
+      *) echo "Unknown option: $1" >&2; exit 1 ;;
+    esac
+    shift
+  done
+
+  api POST "/tasks/$task_id" -d "$payload" | jq -r '"Updated task #\(.id): \(.title)"'
+}
+
+cmd_delete() {
+  local task_id="$1"
+  api DELETE "/tasks/$task_id"
+  echo "Deleted task #$task_id"
+}
+
+cmd_help() {
+  cat <<EOF
+vk - Vikunja CLI for nix-config
+
+Usage: vk <command> [options]
+
+Commands:
+  list [--all|--done]     List tasks (default: open only)
+  show <id>               Show task details
+  create <title>          Create a task
+    --title="..."         Task title
+    --desc="..."          Description
+    --priority=P0-P4      Priority (P0=urgent, P4=low)
+  done <id>               Mark task as done
+  reopen <id>             Reopen a completed task
+  update <id> [options]   Update task fields
+    --title="..."
+    --desc="..."
+    --priority=P0-P4
+  delete <id>             Delete a task
+  help                    Show this help
+
+Examples:
+  vk list
+  vk create "Fix networking module" --priority=P2
+  vk done 42
+EOF
+}
+
+# Main
+case "${1:-help}" in
+  list|ls) shift; cmd_list "$@" ;;
+  show) shift; cmd_show "$@" ;;
+  create|add|new) shift; cmd_create "$@" ;;
+  done|close|complete) shift; cmd_done "$@" ;;
+  reopen|open) shift; cmd_reopen "$@" ;;
+  update|edit) shift; cmd_update "$@" ;;
+  delete|rm) shift; cmd_delete "$@" ;;
+  help|--help|-h) cmd_help ;;
+  *) echo "Unknown command: $1. Run 'vk help' for usage." >&2; exit 1 ;;
+esac
