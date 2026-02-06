@@ -54,3 +54,23 @@ tasks:
     updated: "2025-02-05"
     notes:
       - "2025-02-05: Network configuration managed via separate NixOS config repo"
+
+  - id: sw-001
+    title: Import K3s modules into external NixOS config
+    description: |
+      Add home-lab flake as input to external NixOS config repo and create host stub:
+      - Add flake input pointing to this repo (github:christiffer/homelab?dir=infrastructure/nixos)
+      - Import k3s-server module in marvin host configuration
+      - Ran nix fmt and nix flake check
+    type: software
+    assignee: claude
+    status: done
+    priority: high
+    depends_on: []
+    labels: [nixos, k3s, configuration, phase-1-control-plane]
+    created: "2025-02-05"
+    updated: "2026-02-06"
+    notes:
+      - "2026-02-06: Added home-lab flake input to nix-config repo"
+      - "2026-02-06: Imported k3s-server module in hosts/nixos/marvin/default.nix"
+      - "2026-02-06: Committed and pushed as 49cc199"

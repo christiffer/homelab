@@ -6,27 +6,6 @@ tasks:
   # Phase 1: Control Plane
   # =============================================================================
 
-  # Software Tasks (Claude)
-  - id: sw-001
-    title: Import K3s modules into external NixOS config
-    description: |
-      Add home-lab flake as input to external NixOS config repo and create host stub:
-      - Add flake input pointing to this repo (github:christiffer/home_assistant)
-      - Import k3s-server module in control-plane host configuration
-      - Test with: nixos-rebuild build --flake .#control-plane
-      - Deploy with: nixos-rebuild switch --flake .#control-plane
-      Reference: infrastructure/nixos/README.md for usage examples
-    type: software
-    assignee: human
-    status: backlog
-    priority: high
-    depends_on: []
-    labels: [nixos, k3s, configuration, phase-1-control-plane]
-    created: "2025-02-05"
-    notes:
-      - "K3s modules now exported from this repo as flake outputs"
-      - "Host stubs live in external NixOS config repo, not here"
-
   - id: sw-002
     title: Extract K3s join token and document process
     description: |
