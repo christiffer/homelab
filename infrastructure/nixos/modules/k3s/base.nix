@@ -3,7 +3,7 @@
 { config, pkgs, lib, ... }:
 
 {
-  # Required kernel modules for container networking
+  # Required kernel modules for container networking and storage
   boot.kernelModules = [
     "br_netfilter"
     "ip_vs"
@@ -11,6 +11,7 @@
     "ip_vs_wrr"
     "ip_vs_sh"
     "overlay"
+    "iscsi_tcp"
   ];
 
   # Sysctl settings for Kubernetes networking
@@ -28,6 +29,12 @@
     allowedUDPPorts = [
       8472   # Flannel VXLAN
     ];
+  };
+
+  # Longhorn requires open-iscsi
+  services.openiscsi = {
+    enable = true;
+    name = "iqn.2025-01.org.nixos:initiator";
   };
 
   # Packages needed for K3s operation

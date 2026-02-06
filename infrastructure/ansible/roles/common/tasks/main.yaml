@@ -47,6 +47,20 @@
 
 # --- K3s prerequisites (workers only) ---
 
+- name: Install Longhorn prerequisites
+  apt:
+    name:
+      - open-iscsi
+    state: present
+  when: "'k3s_workers' in group_names"
+
+- name: Enable and start iscsid
+  systemd:
+    name: iscsid
+    enabled: true
+    state: started
+  when: "'k3s_workers' in group_names"
+
 - name: Disable swap (dphys-swapfile)
   when: "'k3s_workers' in group_names"
   block:
