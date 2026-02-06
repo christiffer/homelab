@@ -17,6 +17,8 @@ spec:
         controller:
           kind: Deployment
           replicaCount: 1
+          admissionWebhooks:
+            enabled: false
   destination:
     server: https://kubernetes.default.svc
     namespace: ingress-nginx
@@ -68,6 +70,8 @@ spec:
     targetRevision: 1.11.0
     helm:
       valuesObject:
+        csi:
+          kubeletRootDir: /var/lib/kubelet
         defaultSettings:
           defaultReplicaCount: 2
         preUpgradeChecker:
