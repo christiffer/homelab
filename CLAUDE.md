@@ -10,11 +10,10 @@ K3s + ArgoCD home lab with hybrid config management: NixOS (x86 server), Ansible
 - `infrastructure/ansible/` — Ansible playbooks and roles for Raspberry Pis
 - `kubernetes/` — K8s manifests: `apps/`, `infrastructure/`, `argocd-apps/`
 - `scripts/` — Bootstrap and worker join scripts
-- `tasks/` — YAML-based task tracking (schema, backlog, in-progress, completed/)
 
 ## Task tracking
 
-Tasks live in `tasks/` as YAML files following `tasks/schema.yaml`. IDs use `prefix-nnn` format (hw-001, sw-001). Tasks have types (software/hardware/hybrid) and assignees (claude/human). Check `tasks/backlog.yaml` and `tasks/in-progress.yaml` before starting work.
+Tasks are tracked in **Vikunja** at `http://192.168.1.41` (Homelab project). Task IDs use `prefix-nnn` format (hw-001, sw-001). Tasks have types (software/hardware) and assignees (claude/human) noted in descriptions.
 
 ## Key conventions
 
@@ -29,10 +28,10 @@ Tasks live in `tasks/` as YAML files following `tasks/schema.yaml`. IDs use `pre
 - **NixOS changes**: Edit modules in `infrastructure/nixos/modules/`, test with `nix flake check`
 - **Ansible changes**: Edit roles/playbooks in `infrastructure/ansible/`, test with `--check` mode
 - **K8s manifests**: Add to appropriate dir under `kubernetes/`, ArgoCD syncs from git
-- **Task updates**: Move tasks between `backlog.yaml` → `in-progress.yaml` → `completed/YYYY-MM.yaml`
+- **Task updates**: Update tasks in Vikunja (http://192.168.1.41, Homelab project)
 
 ## Do not
 
 - Add host-specific NixOS configurations (those belong in the external config repo)
 - Commit secrets or tokens — use SOPS/age or placeholder references
-- Skip task tracking — update task YAML files when starting or completing work
+- Skip task tracking — update Vikunja when starting or completing work
