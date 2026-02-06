@@ -1,4 +1,23 @@
 # In-Progress Tasks
 # Tasks currently being worked on
 
-tasks: []
+tasks:
+  - id: sw-002
+    title: Extract K3s join token and document process
+    description: |
+      After control plane is running K3s:
+      - Extract join token from /var/lib/rancher/k3s/server/node-token
+      - Document token management approach (manual copy, agenix, or sops)
+      - Update infrastructure/nixos/README.md with chosen approach
+      - Create example worker host stub showing serverAddr and tokenFile usage
+    type: software
+    assignee: human
+    status: in-progress
+    priority: high
+    depends_on: [sw-001]
+    labels: [nixos, k3s, phase-1-control-plane]
+    created: "2025-02-05"
+    notes:
+      - "Token extracted from control plane"
+      - "Approach chosen: manual copy for now, SOPS+age later"
+      - "README.md updated with step-by-step manual copy procedure"

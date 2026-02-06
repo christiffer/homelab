@@ -6,25 +6,6 @@ tasks:
   # Phase 1: Control Plane
   # =============================================================================
 
-  - id: sw-002
-    title: Extract K3s join token and document process
-    description: |
-      After control plane is running K3s:
-      - Extract join token from /var/lib/rancher/k3s/server/node-token
-      - Document token management approach (manual copy, agenix, or sops)
-      - Update infrastructure/nixos/README.md with chosen approach
-      - Create example worker host stub showing serverAddr and tokenFile usage
-    type: software
-    assignee: human
-    status: backlog
-    priority: high
-    depends_on: [sw-001]
-    labels: [nixos, k3s, phase-1-control-plane]
-    created: "2025-02-05"
-    notes:
-      - "Token needed for workers to join cluster"
-      - "Consider secrets management: agenix or sops-nix"
-
   # =============================================================================
   # Phase 2: Worker Nodes
   # =============================================================================
@@ -76,40 +57,6 @@ tasks:
     notes: []
 
   # Software Tasks (Claude)
-  - id: sw-003
-    title: Create Ansible inventory for Raspberry Pis
-    description: |
-      Write Ansible inventory defining:
-      - K3s worker nodes (Pi 5, Pi 4s)
-      - Support service nodes (Pi 1/2/3)
-      - Group variables for each category
-      Reference: infrastructure/ansible/inventory.yaml
-    type: software
-    assignee: claude
-    status: backlog
-    priority: high
-    labels: [ansible, pi, configuration, phase-2-workers]
-    created: "2025-02-05"
-    notes: []
-
-  - id: sw-004
-    title: Write Ansible common role
-    description: |
-      Create common role that applies to all Pis:
-      - System updates
-      - Essential packages
-      - SSH hardening
-      - Time sync (NTP)
-      - User management
-      Reference: infrastructure/ansible/roles/common/
-    type: software
-    assignee: claude
-    status: backlog
-    priority: high
-    labels: [ansible, configuration, phase-2-workers]
-    created: "2025-02-05"
-    notes: []
-
   - id: sw-005
     title: Write Ansible K3s agent role
     description: |

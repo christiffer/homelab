@@ -22,9 +22,9 @@ modules/k3s/
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
 
     # Add home-lab modules
-    home-lab.url = "github:christiffer/home_assistant";
+    home-lab.url = "github:christiffer/homelab?dir=infrastructure/nixos";
     # Or for local development:
-    # home-lab.url = "path:/home/chris/code/christiffer/home_assistant";
+    # home-lab.url = "path:/home/chris/code/christiffer/homelab?dir=infrastructure/nixos";
   };
 
   outputs = { self, nixpkgs, home-lab, ... }: {
@@ -76,9 +76,10 @@ modules/k3s/
 
   networking.hostName = "nuc-worker-1";
 
-  # Required: tell agent where to find the server
-  services.k3s.serverAddr = "https://control-plane:6443";
-  services.k3s.tokenFile = /var/lib/k3s/token;  # Or use agenix/sops
+  # Required: tell agent where to find the server and how to authenticate.
+  # The token file must already exist on disk (see "K3s Token Management" below).
+  services.k3s.serverAddr = "https://<control-plane-ip>:6443";
+  services.k3s.tokenFile = /var/lib/k3s/token;
 }
 ```
 
@@ -92,18 +93,55 @@ modules/k3s/
 
 ## K3s Token Management
 
-Workers need the join token from the control plane. Options:
+Workers need the server join token to authenticate with the control plane.
 
-1. **Manual**: Copy `/var/lib/rancher/k3s/server/node-token` from control plane to workers
-2. **agenix/sops**: Encrypt token and decrypt at deploy time
-3. **tokenFile**: Point to a file containing the token
+### Current approach: manual copy
+
+1. On the control plane, read the token:
+
+   ```bash
+   sudo cat /var/lib/rancher/k3s/server/node-token
+   ```
+
+2. On each worker node, write the token to a file:
+
+   ```bash
+   sudo mkdir -p /var/lib/k3s
+   sudo tee /var/lib/k3s/token > /dev/null <<< 'K10...<your-token>'
+   sudo chmod 600 /var/lib/k3s/token
+   ```
+
+3. In the worker's NixOS host configuration, reference the file:
+
+   ```nix
+   services.k3s.serverAddr = "https://<control-plane-ip>:6443";
+   services.k3s.tokenFile = /var/lib/k3s/token;
+   ```
+
+4. Rebuild the worker:
+
+   ```bash
+   sudo nixos-rebuild switch
+   ```
+
+5. Verify the node joined from the control plane:
+
+   ```bash
+   kubectl get nodes
+   ```
+
+### Future: encrypted secrets
+
+When secrets management is set up (SOPS + age), the token can be committed
+encrypted to the repo and decrypted at deploy time, removing the manual copy
+step. This is tracked as a future improvement.
 
 ## Development
 
 When iterating on these modules locally, use a path input:
 
 ```nix
-home-lab.url = "path:/home/chris/code/christiffer/home_assistant";
+home-lab.url = "path:/home/chris/code/christiffer/homelab?dir=infrastructure/nixos";
 ```
 
 Then update the lock file after changes:
