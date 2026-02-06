@@ -37,6 +37,12 @@
     name = "iqn.2025-01.org.nixos:initiator";
   };
 
+  # Longhorn uses nsenter to find iscsiadm on the host at standard paths.
+  # NixOS puts binaries in /nix/store, so we symlink to where Longhorn expects them.
+  systemd.tmpfiles.rules = [
+    "L+ /usr/local/bin/iscsiadm - - - - ${pkgs.openiscsi}/bin/iscsiadm"
+  ];
+
   # Packages needed for K3s operation
   environment.systemPackages = with pkgs; [
     k3s
