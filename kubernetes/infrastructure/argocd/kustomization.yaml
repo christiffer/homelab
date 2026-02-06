@@ -1,5 +1,5 @@
-# ArgoCD deployment
-# This will be populated when Phase 3 begins
+# ArgoCD deployment via upstream manifests + patches
+# Bootstrap: kubectl apply -k kubernetes/infrastructure/argocd/
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -7,8 +7,18 @@ kind: Kustomization
 namespace: argocd
 
 resources:
-  # ArgoCD will be installed here
-  # Options:
-  # 1. Use upstream manifests: https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-  # 2. Use Helm chart via helmCharts
-  []
+  - namespace.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v2.13.3/manifests/install.yaml
+
+patches:
+  # Run argocd-server without TLS (terminate at ingress)
+  - target:
+      kind: ConfigMap
+      name: argocd-cmd-params-cm
+    patch: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-cmd-params-cm
+      data:
+        server.insecure: "true"

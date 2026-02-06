@@ -1,0 +1,14 @@
+# Defaults for common role
+
+---
+timezone: "UTC"
+ssh_allow_password: false
+
+common_packages:
+  - vim
+  - git
+  - curl
+  - htop
+  - iotop
+  - tmux
+  - jq

@@ -9,7 +9,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/YOUR_USERNAME/home_assistant.git  # TODO: Update
+    repoURL: https://github.com/christiffer/homelab.git
     targetRevision: HEAD
     path: kubernetes/infrastructure/ingress-nginx
   destination:
@@ -30,7 +30,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/YOUR_USERNAME/home_assistant.git  # TODO: Update
+    repoURL: https://github.com/christiffer/homelab.git
     targetRevision: HEAD
     path: kubernetes/infrastructure/cert-manager
   destination:
@@ -51,7 +51,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/YOUR_USERNAME/home_assistant.git  # TODO: Update
+    repoURL: https://github.com/christiffer/homelab.git
     targetRevision: HEAD
     path: kubernetes/infrastructure/longhorn
   destination:

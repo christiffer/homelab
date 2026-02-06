@@ -1,6 +1,8 @@
 # Common role - applied to all Raspberry Pis
 
 ---
+# --- Package management ---
+
 - name: Update apt cache
   apt:
     update_cache: true
@@ -15,9 +17,19 @@
     name: "{{ common_packages }}"
     state: present
 
+# --- System configuration ---
+
 - name: Set timezone
   timezone:
     name: "{{ timezone }}"
+
+- name: Enable and start systemd-timesyncd
+  systemd:
+    name: systemd-timesyncd
+    enabled: true
+    state: started
+
+# --- SSH hardening ---
 
 - name: Configure SSH - disable password authentication
   lineinfile:
@@ -33,14 +45,44 @@
     line: 'PermitRootLogin no'
   notify: Restart SSH
 
+# --- K3s prerequisites (workers only) ---
+
+- name: Disable swap (dphys-swapfile)
+  when: "'k3s_workers' in group_names"
+  block:
+    - name: Stop dphys-swapfile service
+      systemd:
+        name: dphys-swapfile
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Remove swap file
+      command: dphys-swapfile uninstall
+      failed_when: false
+      changed_when: false
+
+- name: Check for cgroups boot config location
+  stat:
+    path: /boot/firmware/cmdline.txt
+  register: boot_firmware_cmdline
+  when: "'k3s_workers' in group_names"
+
+- name: Set boot cmdline path
+  set_fact:
+    cmdline_path: "{{ '/boot/firmware/cmdline.txt' if (boot_firmware_cmdline.stat.exists | default(false)) else '/boot/cmdline.txt' }}"
+  when: "'k3s_workers' in group_names"
+
 - name: Enable cgroups for K3s (boot config)
   lineinfile:
-    path: /boot/cmdline.txt
+    path: "{{ cmdline_path }}"
     regexp: '^((?!.*cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory).*)$'
     line: '\1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory'
     backrefs: true
   notify: Reboot required
   when: "'k3s_workers' in group_names"
+
+# --- Networking ---
 
 - name: Enable IP forwarding
   sysctl:

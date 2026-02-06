@@ -93,43 +93,8 @@ tasks:
     notes: []
 
   # =============================================================================
-  # Phase 3: GitOps Bootstrap
+  # Phase 3: GitOps Bootstrap (sw-007, sw-008 completed)
   # =============================================================================
-
-  - id: sw-007
-    title: Create ArgoCD deployment manifests
-    description: |
-      Write Kubernetes manifests for ArgoCD:
-      - Namespace
-      - ArgoCD installation (Helm or raw manifests)
-      - Initial configuration
-      - Ingress for UI access
-      Reference: kubernetes/infrastructure/argocd/
-    type: software
-    assignee: claude
-    status: backlog
-    priority: high
-    depends_on: [sw-002, sw-006]
-    labels: [argocd, kubernetes, phase-3-gitops]
-    created: "2025-02-05"
-    notes: []
-
-  - id: sw-008
-    title: Configure ArgoCD app-of-apps
-    description: |
-      Set up the app-of-apps pattern:
-      - Root Application pointing to argocd-apps/
-      - Application CRDs for each component
-      - Sync policies and health checks
-      Reference: kubernetes/argocd-apps/
-    type: software
-    assignee: claude
-    status: backlog
-    priority: high
-    depends_on: [sw-007]
-    labels: [argocd, kubernetes, phase-3-gitops]
-    created: "2025-02-05"
-    notes: []
 
   # =============================================================================
   # Phase 4: Core Services

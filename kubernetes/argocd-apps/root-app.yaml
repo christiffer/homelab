@@ -11,7 +11,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/YOUR_USERNAME/home_assistant.git  # TODO: Update
+    repoURL: https://github.com/christiffer/homelab.git
     targetRevision: HEAD
     path: kubernetes/argocd-apps
   destination:

@@ -1,13 +1,11 @@
 # Ansible Inventory for Raspberry Pi fleet
-# Update IP addresses and hostnames after hardware setup
+# Update IP addresses after hardware setup (hw-003, hw-004, hw-005)
 
 all:
   vars:
     ansible_user: pi
     ansible_ssh_private_key_file: ~/.ssh/id_ed25519
-    # K3s join configuration
-    k3s_server_url: "https://control-plane:6443"
-    k3s_token_file: /var/lib/rancher/k3s/server/node-token
+    ansible_python_interpreter: /usr/bin/python3
 
   children:
     # K3s worker nodes (Pi 4 and Pi 5)
@@ -17,30 +15,27 @@ all:
           ansible_host: 192.168.1.20  # TODO: Update after setup
           k3s_node_labels:
             - "node.kubernetes.io/instance-type=pi5"
+            - "kubernetes.io/arch=arm64"
         pi4-worker-1:
           ansible_host: 192.168.1.21  # TODO: Update after setup
           k3s_node_labels:
             - "node.kubernetes.io/instance-type=pi4"
+            - "kubernetes.io/arch=arm64"
         pi4-worker-2:
           ansible_host: 192.168.1.22  # TODO: Update after setup
           k3s_node_labels:
             - "node.kubernetes.io/instance-type=pi4"
-      vars:
-        k3s_role: agent
+            - "kubernetes.io/arch=arm64"
 
-    # Support service nodes (older Pis)
+    # Support service nodes (older Pis, not in K3s cluster)
     support_services:
       hosts:
         pihole-dns:
           ansible_host: 192.168.1.30  # TODO: Update after setup
-          pihole_enabled: true
         monitoring-agent:
           ansible_host: 192.168.1.31  # TODO: Update after setup
-          node_exporter_enabled: true
-      vars:
-        k3s_role: none  # These don't join the cluster
 
-    # All Raspberry Pis
+    # Parent group for all Pis
     raspberry_pis:
       children:
         k3s_workers:

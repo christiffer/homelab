@@ -1,0 +1,7 @@
+# Variables for K3s worker nodes
+
+---
+# K3s agent configuration
+k3s_version: "v1.31.4+k3s1"  # TODO: Match version running on marvin
+k3s_server_url: "https://marvin:6443"  # TODO: Use IP if hostname isn't resolvable
+# k3s_token: ""  # Set via --extra-vars or vault. Get from marvin: /var/lib/rancher/k3s/server/node-token

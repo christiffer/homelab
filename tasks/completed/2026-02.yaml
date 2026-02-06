@@ -1,0 +1,103 @@
+# Completed Tasks - February 2026
+
+tasks:
+  - id: sw-003
+    title: Create Ansible inventory for Raspberry Pis
+    description: |
+      Ansible inventory with:
+      - K3s workers group (Pi 5, 2x Pi 4) with node labels
+      - Support services group (pihole-dns, monitoring-agent)
+      - Parent raspberry_pis group
+      - Group-specific var files (k3s_workers.yaml, support_services.yaml)
+      - ansible.cfg with sensible defaults
+    type: software
+    assignee: claude
+    status: done
+    priority: high
+    labels: [ansible, pi, configuration, phase-2-workers]
+    created: "2025-02-05"
+    updated: "2026-02-06"
+    notes:
+      - "2026-02-06: Cleaned up inventory — connection vars only, K3s config moved to group_vars"
+      - "2026-02-06: Added group_vars/k3s_workers.yaml and group_vars/support_services.yaml"
+      - "2026-02-06: Added ansible.cfg with yaml callback, pipelining, SSH multiplexing"
+      - "2026-02-06: Server URL points to marvin:6443"
+
+  - id: sw-004
+    title: Write Ansible common role
+    description: |
+      Common role applied to all Raspberry Pis:
+      - Package updates and common package installation
+      - Timezone and NTP (systemd-timesyncd)
+      - SSH hardening (disable password auth, disable root login)
+      - Swap disable for K3s workers (dphys-swapfile)
+      - cgroups enablement with Bookworm path detection
+      - IP forwarding
+      - Role defaults in defaults/main.yaml
+    type: software
+    assignee: claude
+    status: done
+    priority: high
+    labels: [ansible, configuration, phase-2-workers]
+    created: "2025-02-05"
+    updated: "2026-02-06"
+    notes:
+      - "2026-02-06: Added NTP via systemd-timesyncd"
+      - "2026-02-06: Added swap disable block for K3s workers"
+      - "2026-02-06: Fixed cgroups path detection for Pi OS Bookworm (/boot/firmware/cmdline.txt)"
+      - "2026-02-06: Reboot handler now actually reboots instead of printing debug message"
+      - "2026-02-06: Added role defaults/main.yaml"
+
+  - id: sw-002
+    title: Extract K3s join token and document process
+    type: software
+    assignee: human
+    status: done
+    priority: high
+    labels: [nixos, k3s, phase-1-control-plane]
+    created: "2025-02-05"
+    updated: "2026-02-06"
+    notes:
+      - "2026-02-06: Token extracted from control plane"
+      - "2026-02-06: Approach chosen: manual copy for now, SOPS+age later"
+      - "2026-02-06: README.md updated with step-by-step manual copy procedure"
+
+  - id: sw-007
+    title: Create ArgoCD deployment manifests
+    description: |
+      ArgoCD deployment via kustomize:
+      - Namespace manifest
+      - Upstream ArgoCD v2.13.3 install.yaml via kustomize remote resource
+      - Patch to run argocd-server in insecure mode (TLS at ingress)
+      - Bootstrap script (scripts/bootstrap-argocd.sh)
+    type: software
+    assignee: claude
+    status: done
+    priority: high
+    labels: [argocd, kubernetes, phase-3-gitops]
+    created: "2025-02-05"
+    updated: "2026-02-06"
+    notes:
+      - "2026-02-06: Using kustomize with upstream manifest pinned to v2.13.3"
+      - "2026-02-06: argocd-cmd-params-cm patched for server.insecure=true"
+      - "2026-02-06: Bootstrap script handles install, wait, password retrieval, and root app apply"
+
+  - id: sw-008
+    title: Configure ArgoCD app-of-apps
+    description: |
+      App-of-apps pattern configured:
+      - Root Application pointing to kubernetes/argocd-apps/
+      - Infrastructure Application CRDs for ingress-nginx, cert-manager, longhorn
+      - Automated sync with prune and self-heal
+      - Repo URL set to https://github.com/christiffer/homelab.git
+    type: software
+    assignee: claude
+    status: done
+    priority: high
+    labels: [argocd, kubernetes, phase-3-gitops]
+    created: "2025-02-05"
+    updated: "2026-02-06"
+    notes:
+      - "2026-02-06: Fixed repo URLs from placeholder to christiffer/homelab"
+      - "2026-02-06: Root app watches kubernetes/argocd-apps/ for child Applications"
+      - "2026-02-06: Infrastructure apps defined for ingress-nginx, cert-manager, longhorn"
