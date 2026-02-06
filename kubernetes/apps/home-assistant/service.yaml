@@ -1,6 +1,5 @@
 # Home Assistant Service
-# Note: With hostNetwork enabled, HA is accessible directly on the node IP:8123
-# This service provides cluster-internal access
+# LoadBalancer type to get a dedicated IP from MetalLB
 apiVersion: v1
 kind: Service
 metadata:
@@ -9,7 +8,7 @@ metadata:
   labels:
     app: home-assistant
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: home-assistant
   ports:
