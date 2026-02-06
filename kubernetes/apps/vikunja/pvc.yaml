@@ -1,0 +1,14 @@
+# Vikunja Persistent Storage
+# Stores SQLite database and uploaded files
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vikunja-data
+  namespace: vikunja
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi

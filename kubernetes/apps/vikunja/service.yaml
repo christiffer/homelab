@@ -1,0 +1,18 @@
+# Vikunja Service
+# LoadBalancer type to get an IP from MetalLB
+apiVersion: v1
+kind: Service
+metadata:
+  name: vikunja
+  namespace: vikunja
+  labels:
+    app: vikunja
+spec:
+  type: LoadBalancer
+  selector:
+    app: vikunja
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

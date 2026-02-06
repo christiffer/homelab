@@ -174,3 +174,23 @@ tasks:
     notes:
       - "2026-02-06: Deployed as Helm chart via ArgoCD"
       - "2026-02-06: Disabled K3s-incompatible component monitors"
+
+  - id: sw-013
+    title: Create Vikunja deployment
+    description: |
+      Vikunja task manager deployment:
+      - Namespace, PVC (5Gi Longhorn), Deployment, LoadBalancer Service
+      - All-in-one container with SQLite database
+      - Kustomization for manifest organization
+      - ArgoCD Application in kubernetes/argocd-apps/apps.yaml
+    type: software
+    assignee: claude
+    status: done
+    priority: medium
+    labels: [kubernetes, phase-5-apps]
+    created: "2025-02-05"
+    updated: "2026-02-06"
+    notes:
+      - "2026-02-06: Using vikunja/vikunja:latest all-in-one image"
+      - "2026-02-06: LoadBalancer service for MetalLB IP assignment"
+      - "2026-02-06: SQLite database stored on Longhorn PVC"

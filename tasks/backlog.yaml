@@ -101,25 +101,8 @@ tasks:
   # =============================================================================
 
   # =============================================================================
-  # Phase 5: Applications
+  # Phase 5: Applications (sw-013 completed)
   # =============================================================================
-
-  - id: sw-013
-    title: Create Vikunja deployment
-    description: |
-      Write manifests for Vikunja task manager.
-      Configure persistent storage.
-      Set up ingress with TLS.
-      Plan migration from YAML tasks.
-      Reference: kubernetes/apps/vikunja/
-    type: software
-    assignee: claude
-    status: backlog
-    priority: medium
-    depends_on: [sw-009, sw-010, sw-011]
-    labels: [kubernetes, phase-5-apps]
-    created: "2025-02-05"
-    notes: []
 
   - id: sw-014
     title: Create Home Assistant deployment
