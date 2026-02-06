@@ -1,5 +1,5 @@
 # Infrastructure Applications
-# Manages cluster infrastructure components
+# Manages cluster infrastructure components via Helm charts
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -9,9 +9,14 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/christiffer/homelab.git
-    targetRevision: HEAD
-    path: kubernetes/infrastructure/ingress-nginx
+    repoURL: https://kubernetes.github.io/ingress-nginx
+    chart: ingress-nginx
+    targetRevision: 4.14.3
+    helm:
+      valuesObject:
+        controller:
+          kind: Deployment
+          replicaCount: 1
   destination:
     server: https://kubernetes.default.svc
     namespace: ingress-nginx
@@ -21,6 +26,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -30,9 +36,14 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/christiffer/homelab.git
-    targetRevision: HEAD
-    path: kubernetes/infrastructure/cert-manager
+    repoURL: https://charts.jetstack.io
+    chart: cert-manager
+    targetRevision: v1.19.3
+    helm:
+      valuesObject:
+        crds:
+          enabled: true
+          keep: true
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
@@ -42,6 +53,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -51,9 +63,13 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/christiffer/homelab.git
-    targetRevision: HEAD
-    path: kubernetes/infrastructure/longhorn
+    repoURL: https://charts.longhorn.io
+    chart: longhorn
+    targetRevision: 1.11.0
+    helm:
+      valuesObject:
+        defaultSettings:
+          defaultReplicaCount: 2
   destination:
     server: https://kubernetes.default.svc
     namespace: longhorn-system
@@ -63,3 +79,67 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 81.5.0
+    helm:
+      valuesObject:
+        # K3s doesn't expose these components in the standard way
+        kubeEtcd:
+          enabled: false
+        kubeProxy:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        kubeControllerManager:
+          enabled: false
+        # Grafana
+        grafana:
+          adminPassword: admin
+          persistence:
+            enabled: true
+            size: 5Gi
+            storageClassName: longhorn
+        # Prometheus
+        prometheus:
+          prometheusSpec:
+            retention: 15d
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: longhorn
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 20Gi
+        # Alertmanager
+        alertmanager:
+          alertmanagerSpec:
+            storage:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: longhorn
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 5Gi
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

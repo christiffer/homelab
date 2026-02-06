@@ -101,3 +101,76 @@ tasks:
       - "2026-02-06: Fixed repo URLs from placeholder to christiffer/homelab"
       - "2026-02-06: Root app watches kubernetes/argocd-apps/ for child Applications"
       - "2026-02-06: Infrastructure apps defined for ingress-nginx, cert-manager, longhorn"
+
+  - id: sw-009
+    title: Create ingress-nginx deployment
+    description: |
+      ArgoCD Application using Helm chart source:
+      - Chart: ingress-nginx 4.14.3 from kubernetes.github.io/ingress-nginx
+      - Bare-metal Deployment with 1 replica
+      - ServerSideApply enabled
+    type: software
+    assignee: claude
+    status: done
+    priority: medium
+    labels: [kubernetes, phase-4-core-services]
+    created: "2025-02-05"
+    updated: "2026-02-06"
+    notes:
+      - "2026-02-06: Converted from empty git dir source to Helm chart source"
+      - "2026-02-06: Note: ingress-nginx community project retiring March 2026"
+
+  - id: sw-010
+    title: Create cert-manager deployment
+    description: |
+      ArgoCD Application using Helm chart source:
+      - Chart: cert-manager v1.19.3 from charts.jetstack.io
+      - CRDs enabled and kept on uninstall
+      - ServerSideApply enabled
+    type: software
+    assignee: claude
+    status: done
+    priority: medium
+    labels: [kubernetes, phase-4-core-services]
+    created: "2025-02-05"
+    updated: "2026-02-06"
+    notes:
+      - "2026-02-06: Converted from empty git dir source to Helm chart source"
+
+  - id: sw-011
+    title: Create Longhorn deployment
+    description: |
+      ArgoCD Application using Helm chart source:
+      - Chart: longhorn 1.11.0 from charts.longhorn.io
+      - Default replica count set to 2
+      - ServerSideApply enabled
+    type: software
+    assignee: claude
+    status: done
+    priority: medium
+    labels: [kubernetes, phase-4-core-services]
+    created: "2025-02-05"
+    updated: "2026-02-06"
+    notes:
+      - "2026-02-06: Converted from empty git dir source to Helm chart source"
+
+  - id: sw-012
+    title: Create monitoring stack deployment
+    description: |
+      ArgoCD Application using Helm chart source:
+      - Chart: kube-prometheus-stack 81.5.0 from prometheus-community
+      - K3s-specific: disabled etcd, kube-proxy, scheduler, controller-manager monitors
+      - Grafana with Longhorn persistent storage (5Gi)
+      - Prometheus with 15d retention, Longhorn storage (20Gi)
+      - Alertmanager with Longhorn storage (5Gi)
+      - ServerSideApply enabled (required for large CRDs)
+    type: software
+    assignee: claude
+    status: done
+    priority: medium
+    labels: [kubernetes, phase-4-core-services]
+    created: "2025-02-05"
+    updated: "2026-02-06"
+    notes:
+      - "2026-02-06: Deployed as Helm chart via ArgoCD"
+      - "2026-02-06: Disabled K3s-incompatible component monitors"

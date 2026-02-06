@@ -97,72 +97,8 @@ tasks:
   # =============================================================================
 
   # =============================================================================
-  # Phase 4: Core Services
+  # Phase 4: Core Services (sw-009, sw-010, sw-011, sw-012 completed)
   # =============================================================================
-
-  - id: sw-009
-    title: Create ingress-nginx deployment
-    description: |
-      Write manifests for ingress-nginx controller.
-      Configure for bare-metal deployment.
-      Set up default TLS certificate handling.
-      Reference: kubernetes/infrastructure/ingress-nginx/
-    type: software
-    assignee: claude
-    status: backlog
-    priority: medium
-    depends_on: [sw-008]
-    labels: [kubernetes, phase-4-core-services]
-    created: "2025-02-05"
-    notes: []
-
-  - id: sw-010
-    title: Create cert-manager deployment
-    description: |
-      Write manifests for cert-manager.
-      Configure Let's Encrypt ClusterIssuer.
-      Set up DNS or HTTP challenge.
-      Reference: kubernetes/infrastructure/cert-manager/
-    type: software
-    assignee: claude
-    status: backlog
-    priority: medium
-    depends_on: [sw-008]
-    labels: [kubernetes, phase-4-core-services]
-    created: "2025-02-05"
-    notes: []
-
-  - id: sw-011
-    title: Create Longhorn deployment
-    description: |
-      Write manifests for Longhorn distributed storage.
-      Configure storage classes.
-      Set up backup targets (if applicable).
-      Reference: kubernetes/infrastructure/longhorn/
-    type: software
-    assignee: claude
-    status: backlog
-    priority: medium
-    depends_on: [sw-008]
-    labels: [kubernetes, phase-4-core-services]
-    created: "2025-02-05"
-    notes: []
-
-  - id: sw-012
-    title: Create monitoring stack deployment
-    description: |
-      Write manifests for Prometheus + Grafana.
-      Configure service monitors for K3s components.
-      Set up basic dashboards.
-      Reference: kubernetes/infrastructure/monitoring/
-    type: software
-    assignee: claude
-    status: backlog
-    priority: medium
-    depends_on: [sw-008]
-    labels: [kubernetes, phase-4-core-services]
-    created: "2025-02-05"
-    notes: []
 
   # =============================================================================
   # Phase 5: Applications
